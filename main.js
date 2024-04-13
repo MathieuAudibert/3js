@@ -57,16 +57,16 @@ scene.add(cube);
 document.addEventListener('keydown', function(event) {
     switch (event.key) {
         case 'q':
-            cube.position.x -= 0.1;
+            cube.position.x -= 0.4;
             break;
         case 'd': 
-            cube.position.x += 0.1;
+            cube.position.x += 0.4;
             break;
         case 'z':
-            cube.position.z -= 0.1;
+            cube.position.z -= 0.4;
             break;
-        case 's ': 
-            cube.position.z += 0.1;
+        case 's': 
+            cube.position.z += 0.4;
             break;
     }
 });
