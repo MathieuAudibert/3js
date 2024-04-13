@@ -1,4 +1,31 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+var loader = new GLTFLoader();
+
+THREE.DefaultLoadingManager.setURLModifier((url) => {
+    return url.replace(/^textures\//, './textures');
+  });
+
+loader.load(
+    './scene.gltf', 
+
+    function ( gltf ) {
+        var car = gltf.scene;
+        car.scale.set(0.5, 0.5, 0.5);
+        car.position.set(0, 0, 0); 
+        scene.add( car );
+
+        car.position.y = 0.5; 
+
+        animate();
+    },
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    function ( error ) {
+        console.log( 'An error happened', error );
+    }
+);
 
 console.log(THREE);
 var scene = new THREE.Scene();
