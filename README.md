@@ -33,6 +33,7 @@ Le joueur a la possibilité de gagner des points bonus en ramassant des objets.
 - Sol
 - Obstacles 
 - Chronometre
+- Circuit
 
 # Crédits
 Modèle de voiture utilisé : 
