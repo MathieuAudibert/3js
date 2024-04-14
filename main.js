@@ -2,8 +2,10 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
+// -------------------------------------------------------------------TEXTURES---------------------------------------------------------------
 var loader = new GLTFLoader();
 
+//--------------------------------------------------------------------CAMERA/SCENES----------------------------------------------------------
 console.log(THREE);
 var scene = new THREE.Scene();
 
@@ -18,19 +20,21 @@ var renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-
+// ---------------------------------------------------------------------SOL-------------------------------------------------------------------
 var groundGeometry = new THREE.PlaneGeometry(100, 100, 10, 10); 
 var groundMaterial = new THREE.MeshBasicMaterial({ color: 0x808080, wireframe: true }); //mettre wireframe false pour avoir un sol uni
 var ground = new THREE.Mesh(groundGeometry, groundMaterial);
 ground.rotation.x = -Math.PI / 2;
 scene.add(ground);
 
+// ----------------------------------------------------------------------Cube/voiture----------------------------------------------------------
 var cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
 var cubeMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
 cube.position.y = 0.5;
 scene.add(cube);
 
+// ------------------------------------------------------------------------Obstacles------------------------------------------------------------
 var rectangles = [];
 var rectangle1Geometry = new THREE.BoxGeometry(2, 1, 0.5);
 var rectangle1Material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
@@ -46,6 +50,46 @@ rectangle2.position.set(2, 1.5, 0);
 rectangles.push(rectangle2);
 scene.add(rectangle2);
 
+// ------------------------------------------------------------------------Circuit-------------------------------------------------------------
+var barrierMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff }); 
+
+function placeCircularBarrier(centerX, centerZ, radius, numSegments) {
+    var angleStep = Math.PI * 2 / numSegments;
+    for (let i = 0; i < numSegments; i++) {
+        let angle = i * angleStep;
+        let x = centerX + radius * Math.cos(angle);
+        let z = centerZ + radius * Math.sin(angle);
+
+        var barrierGeometry = new THREE.BoxGeometry(2, 0.5, 0.5); 
+        var barrier = new THREE.Mesh(barrierGeometry, barrierMaterial);
+        barrier.position.set(x, 0.25, z);
+        barrier.lookAt(new THREE.Vector3(centerX, barrier.position.y, centerZ)); 
+
+        scene.add(barrier);
+    }
+}
+
+
+var centerX = 0;
+var centerZ = 0;
+
+
+var outerRadius = 30;
+
+var innerRadius = 20;
+
+var numSegments = 36; 
+
+
+placeCircularBarrier(centerX, centerZ, outerRadius, numSegments);
+
+
+placeCircularBarrier(centerX, centerZ, innerRadius, numSegments);
+
+camera.position.set(centerX, 10, centerZ + 50); 
+camera.lookAt(new THREE.Vector3(centerX, 0, centerZ));
+
+// ----------------------------------------------------------------------------Chronometre-----------------------------------------------------
 let startTime, updatedTime, difference;
 let savedTime;
 let running = 0;
@@ -84,6 +128,7 @@ function getShowTime() {
 
 document.getElementById("stopButton").addEventListener("click", stopTimer);
 
+// ----------------------------------------------------------------Déplacements----------------------------------------------------------------
 document.addEventListener('keydown', function(event) {
     var newPosition = cube.position.clone();
     switch (event.key) {

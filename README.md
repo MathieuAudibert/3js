@@ -31,6 +31,8 @@ Le joueur a la possibilité de gagner des points bonus en ramassant des objets.
 # Fonctionnalités 
 - Avancer, reculer, aller a gauche/droite
 - Sol
+- Obstacles 
+- Chronometre
 
 # Crédits
 Modèle de voiture utilisé : 
