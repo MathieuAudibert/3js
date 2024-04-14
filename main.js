@@ -1,31 +1,8 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+
 var loader = new GLTFLoader();
-
-THREE.DefaultLoadingManager.setURLModifier((url) => {
-    return url.replace(/^textures\//, './textures');
-  });
-
-loader.load(
-    './scene.gltf', 
-
-    function ( gltf ) {
-        var car = gltf.scene;
-        car.scale.set(0.5, 0.5, 0.5);
-        car.position.set(0, 0, 0); 
-        scene.add( car );
-
-        car.position.y = 0.5; 
-
-        animate();
-    },
-    function ( xhr ) {
-        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-    },
-    function ( error ) {
-        console.log( 'An error happened', error );
-    }
-);
 
 console.log(THREE);
 var scene = new THREE.Scene();
@@ -54,22 +31,81 @@ var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
 cube.position.y = 0.5;
 scene.add(cube);
 
+var rectangles = [];
+var rectangle1Geometry = new THREE.BoxGeometry(0.5, 3, 0.5);
+var rectangle1Material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+var rectangle1 = new THREE.Mesh(rectangle1Geometry, rectangle1Material);
+rectangle1.position.set(-2, 1.5, 0);
+rectangles.push(rectangle1);
+scene.add(rectangle1);
+
+var rectangle2Geometry = new THREE.BoxGeometry(0.5, 3, 0.5);
+var rectangle2Material = new THREE.MeshBasicMaterial({ color: 0x00ff00 }); 
+var rectangle2 = new THREE.Mesh(rectangle2Geometry, rectangle2Material);
+rectangle2.position.set(2, 1.5, 0);
+rectangles.push(rectangle2);
+scene.add(rectangle2);
+
+let startTime, updatedTime, difference;
+let savedTime;
+let running = 0;
+let intervalId;
+
+function startTimer() {
+  if (!running) {
+    startTime = new Date().getTime();
+    intervalId = setInterval(getShowTime, 1);
+    running = 1;
+  }
+}
+
+function stopTimer() {
+  if (running) {
+    clearInterval(intervalId); 
+    savedTime = difference;
+    running = 0;
+  }
+}
+
+function getShowTime() {
+  updatedTime = new Date().getTime();
+  if (savedTime) {
+    difference = (updatedTime - startTime) + savedTime;
+  } else {
+    difference = updatedTime - startTime;
+  }
+  let hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  let minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+  let seconds = Math.floor((difference % (1000 * 60)) / 1000);
+  let milliseconds = Math.floor((difference % (1000)) / 10);
+
+  document.getElementById("timer").innerHTML = `${hours}:${minutes}:${seconds}:${milliseconds}`;
+}
+
+document.getElementById("stopButton").addEventListener("click", stopTimer);
+
 document.addEventListener('keydown', function(event) {
+    var newPosition = cube.position.clone();
     switch (event.key) {
-        case 'q':
-            cube.position.x -= 0.4;
-            break;
-        case 'd': 
-            cube.position.x += 0.4;
-            break;
-        case 'z':
-            cube.position.z -= 0.4;
-            break;
-        case 's': 
-            cube.position.z += 0.4;
-            break;
+      case 'q':
+          cube.position.x -= 0.4;
+          startTimer();
+          break;
+      case 'd': 
+          cube.position.x += 0.4;
+          startTimer();
+          break;
+      case 'z':
+          cube.position.z -= 0.4;
+          startTimer();
+          break;
+      case 's': 
+          cube.position.z += 0.4;
+          startTimer();
+          break;
     }
 });
+
 
 function animate() {
     requestAnimationFrame(animate);
