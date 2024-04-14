@@ -32,14 +32,14 @@ cube.position.y = 0.5;
 scene.add(cube);
 
 var rectangles = [];
-var rectangle1Geometry = new THREE.BoxGeometry(0.5, 3, 0.5);
+var rectangle1Geometry = new THREE.BoxGeometry(2, 1, 0.5);
 var rectangle1Material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
 var rectangle1 = new THREE.Mesh(rectangle1Geometry, rectangle1Material);
 rectangle1.position.set(-2, 1.5, 0);
 rectangles.push(rectangle1);
 scene.add(rectangle1);
 
-var rectangle2Geometry = new THREE.BoxGeometry(0.5, 3, 0.5);
+var rectangle2Geometry = new THREE.BoxGeometry(1.5, 2, 0.5);
 var rectangle2Material = new THREE.MeshBasicMaterial({ color: 0x00ff00 }); 
 var rectangle2 = new THREE.Mesh(rectangle2Geometry, rectangle2Material);
 rectangle2.position.set(2, 1.5, 0);
