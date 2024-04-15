@@ -3,17 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>THREEJS</title>
+    <title>Three.js</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <script type="module" src="./main.js"></script>
-    <script src="js/GLTFLoader.js"></script>
     <h1>Bienvenue sur AutoZurichen Reizwagen !</h1>
     <br />
-    <h2>Score:</h2>
-    <div>
-      <h2>Temps: <span id="timer">00:00:00</span></h2>
+    <div class="timer">
+      <h2>Timer:</h2>
+      <p id="timer">00:00:00:00</p>
     </div>
+    <script type="module" src="main.js"></script>
+    <script src="jsm/loaders/OBJLoader.js"></script>
   </body>
 </html>

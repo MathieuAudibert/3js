@@ -1,24 +1,26 @@
 import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-// Scène, caméra et renderer
+// Scène, Caméra et Rendu
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera(
-  80,
-  window.innerWidth / window.innerHeight,
+  90,
+  (window.innerWidth * 0.8) / (window.innerHeight * 0.8),
   0.1,
   1000
 );
 var renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setSize(window.innerWidth * 0.8, window.innerHeight * 0.8);
 document.body.appendChild(renderer.domElement);
 camera.position.z = 5;
 
-// Chargement de la texture pour le sol
+renderer.domElement.style.position = "absolute";
+renderer.domElement.style.left = "10%";
+renderer.domElement.style.top = "10%";
+
+// Chargement de la texture du sol
 var textureLoader = new THREE.TextureLoader();
 textureLoader.load("./textures/rocky_trail_diff_4k.jpg", function (texture) {
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
   texture.repeat.set(4, 4);
   var groundMaterial = new THREE.MeshBasicMaterial({ map: texture });
   var groundGeometry = new THREE.PlaneGeometry(100, 100);
@@ -35,83 +37,61 @@ cube.position.set(-25, 0.5, 1);
 scene.add(cube);
 
 // Variables de mouvement
-var move = { forward: false, backward: false, left: false, right: false };
+var move = { avant: false, arrière: false, gauche: false, droite: false };
 var velocity = new THREE.Vector3();
 var acceleration = 5;
 var maxSpeed = 10;
 var rotationSpeed = 3;
 
-// Variables pour suivre la direction de la voiture
-var carDirection = new THREE.Vector3();
-var cameraOffset = new THREE.Vector3(0, 2, 5);
-
-// Gestionnaires d'événements pour les contrôles du clavier
+// Écouteurs d'événements pour les contrôles clavier
 document.addEventListener("keydown", function (event) {
   switch (event.key) {
     case "z":
-      move.forward = true;
+      move.avant = true;
       break;
     case "s":
-      move.backward = true;
+      move.arrière = true;
       break;
     case "q":
-      move.left = true;
+      move.gauche = true;
       break;
     case "d":
-      move.right = true;
+      move.droite = true;
       break;
   }
 });
 document.addEventListener("keyup", function (event) {
   switch (event.key) {
     case "z":
-      move.forward = false;
+      move.avant = false;
       break;
     case "s":
-      move.backward = false;
+      move.arrière = false;
       break;
     case "q":
-      move.left = false;
+      move.gauche = false;
       break;
     case "d":
-      move.right = false;
+      move.droite = false;
       break;
   }
 });
 
-// Mise à jour du mouvement
+// Fonction de mise à jour du mouvement
 function updateMovement(delta) {
-  // Accélération et décélération
-  if (move.forward) {
-    velocity.z -= acceleration * delta;
-    if (velocity.z < -maxSpeed) {
-      velocity.z = -maxSpeed;
-    }
-  }
-  if (move.backward) {
-    velocity.z += acceleration * delta;
-    if (velocity.z > 0) {
-      velocity.z = 0;
-    }
-  }
-
-  // Rotation de la voiture
-  if (move.left) {
-    cube.rotation.y += rotationSpeed * delta;
-  }
-  if (move.right) {
-    cube.rotation.y -= rotationSpeed * delta;
-  }
-
-  // Mise à jour de la position de la voiture
-  cube.getWorldDirection(carDirection);
-  cube.position.addScaledVector(carDirection, velocity.z * delta);
+  if (move.avant) velocity.z -= acceleration * delta;
+  if (move.arrière) velocity.z += acceleration * delta;
+  if (move.gauche) cube.rotation.y += rotationSpeed * delta;
+  if (move.droite) cube.rotation.y -= rotationSpeed * delta;
+  velocity.z = Math.max(-maxSpeed, Math.min(velocity.z, 0));
+  cube.position.addScaledVector(
+    new THREE.Vector3(0, 0, 1).applyQuaternion(cube.quaternion),
+    velocity.z * delta
+  );
 }
 
-// Barriers array for collision detection
+// Configuration des barrières
 var barriers = [];
-
-// Function to place barriers in a circular pattern
 function placeCircularBarrier(centerX, centerZ, radius, numSegments) {
   var angleStep = (Math.PI * 2) / numSegments;
   for (let i = 0; i < numSegments; i++) {
@@ -119,109 +99,187 @@ function placeCircularBarrier(centerX, centerZ, radius, numSegments) {
     let x = centerX + radius * Math.cos(angle);
     let z = centerZ + radius * Math.sin(angle);
 
-    var barrierGeometry = new THREE.BoxGeometry(5.2, 0.5, 0.5);
-    var barrier = new THREE.Mesh(
-      barrierGeometry,
-      new THREE.MeshBasicMaterial({ color: 0x0000ff })
-    );
+    var barrierGeometry = new THREE.BoxGeometry(2, 0.5, 0.5);
+    var barrierMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+    var barrier = new THREE.Mesh(barrierGeometry, barrierMaterial);
     barrier.position.set(x, 0.25, z);
-    barrier.lookAt(new THREE.Vector3(centerX, barrier.position.y, centerZ));
+    barrier.lookAt(new THREE.Vector3(centerX, 0.25, centerZ));
     scene.add(barrier);
     barriers.push(barrier);
   }
 }
 
+// Configuration des obstacles
+var obstacles = [];
+function placeObstacles(obstaclePositions) {
+  for (let position of obstaclePositions) {
+    let x = position[0];
+    let z = position[1];
+
+    var obstacleGeometry = new THREE.BoxGeometry(2, 0.5, 0.5);
+    var obstacleMaterial = new THREE.MeshBasicMaterial({ color: 0xeeeeee });
+    var obstacle = new THREE.Mesh(obstacleGeometry, obstacleMaterial);
+    obstacle.position.set(x, 0.25, z);
+    scene.add(obstacle);
+    obstacles.push(obstacle);
+  }
+}
+
+// Appel de la fonction placeObstacles
+placeObstacles([
+  [-25, 5],
+  [-25, -5],
+  [-25, -10],
+  [-20, -15],
+  [-15, -20],
+  [-10, -20],
+  [-7, -20],
+]);
+
+placeObstacles([
+  [25, 5],
+  [25, -5],
+  [25, -10],
+  [20, -15],
+  [15, -20],
+  [10, -20],
+  [7, -20],
+]);
+
 placeCircularBarrier(0, 0, 30, 36);
 placeCircularBarrier(0, 0, 20, 36);
 
-// Start line setup
-var startLineMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-var poleGeometry = new THREE.BoxGeometry(0.1, 2, 0.1);
-var pole1 = new THREE.Mesh(poleGeometry, startLineMaterial);
-var pole2 = new THREE.Mesh(poleGeometry, startLineMaterial);
-pole1.position.set(-28, 1, 0);
-pole2.position.set(-22, 1, 0);
-scene.add(pole1);
-scene.add(pole2);
+// Fonction pour gérer la collision
+function handleCollision() {
+  cube.position.set(-25, 0.5, 1);
+  cube.rotation.y = 0;
+  velocity.set(0, 0, 0);
 
-// Timer setup
-let startTime, updatedTime, difference;
-let savedTime;
-let running = 0;
-let intervalId;
+  // Réinitialise les directions de mouvement
+  move.avant = false;
+  move.arrière = false;
+  move.gauche = false;
+  move.droite = false;
 
-function startTimer() {
-  if (!running) {
-    startTime = new Date().getTime();
-    intervalId = setInterval(getShowTime, 1);
-    running = 1;
-  }
-}
-
-function stopTimer() {
+  // Gestion du chronomètre
   if (running) {
-    clearInterval(intervalId);
-    savedTime = difference;
-    running = 0;
+    stopTimer();
+    resetTimer();
   }
-}
-
-function getShowTime() {
-  updatedTime = new Date().getTime();
-  if (savedTime) {
-    difference = updatedTime - startTime + savedTime;
-  } else {
-    difference = updatedTime - startTime;
-  }
-  let hours = Math.floor(
-    (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-  );
-  let minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-  let seconds = Math.floor((difference % (1000 * 60)) / 1000);
-  let milliseconds = Math.floor((difference % 1000) / 10);
-
-  document.getElementById(
-    "timer"
-  ).innerHTML = `${hours}:${minutes}:${seconds}:${milliseconds}`;
 }
 
 // Vérification du franchissement de la ligne de départ
 function checkStartLine() {
-  var cubePosition = cube.position.z;
-  var pole1Position = pole1.position.z;
-  var pole2Position = pole2.position.z;
+  var cubeBox = new THREE.Box3().setFromObject(cube);
+  var startLineLeftBox = new THREE.Box3().setFromObject(startLineLeft);
+  var startLineRightBox = new THREE.Box3().setFromObject(startLineRight);
 
-  // Vérifier si le cube franchit la ligne de départ pour la première fois
   if (
-    cubePosition >= pole1Position &&
-    cubePosition <= pole2Position &&
-    velocity.z < 0 &&
-    !hasCrossedStartLine
+    cubeBox.intersectsBox(startLineLeftBox) ||
+    cubeBox.intersectsBox(startLineRightBox)
   ) {
-    // Le cube franchit la ligne de départ pour la première fois
-    startTimer(); // Démarrer le chronomètre
-    hasCrossedStartLine = true;
+    if (!running) {
+      startTimer();
+    } else {
+      stopTimer();
+      resetTimer();
+      startTimer();
+    }
   }
 }
 
-// Collision Detection
+// Ligne de départ
+var startLineMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+var startLineGeometry = new THREE.BoxGeometry(7, 0.1, 0.1);
+var startLineLeft = new THREE.Mesh(startLineGeometry, startLineMaterial);
+var startLineRight = new THREE.Mesh(startLineGeometry, startLineMaterial);
+startLineLeft.position.set(-29, 1, -1);
+startLineRight.position.set(-21, 1, -1);
+scene.add(startLineLeft);
+scene.add(startLineRight);
+
+// Détection des collisions
 function checkCollisions() {
   var cubeBox = new THREE.Box3().setFromObject(cube);
   for (let barrier of barriers) {
     var barrierBox = new THREE.Box3().setFromObject(barrier);
     if (cubeBox.intersectsBox(barrierBox)) {
-      cube.position.set(-25, 0.5, 1); // Réinitialiser la position du cube en cas de collision
-      stopTimer(); // Mettre en pause le chronomètre en cas de collision
+      handleCollision();
+      break;
+    }
+  }
+  for (let obstacle of obstacles) {
+    var obstacleBox = new THREE.Box3().setFromObject(obstacle);
+    if (cubeBox.intersectsBox(obstacleBox)) {
+      handleCollision();
       break;
     }
   }
 }
 
-// Animation loop
+var running = false;
+var startTime;
+var elapsedTime = 0;
+
+function startTimer() {
+  if (!running) {
+    running = true;
+    startTime = Date.now() - elapsedTime;
+    setInterval(updateTimer, 100);
+  }
+}
+
+function stopTimer() {
+  if (running) {
+    running = false;
+    elapsedTime = Date.now() - startTime;
+    clearInterval(updateTimer);
+  }
+}
+
+function resetTimer() {
+  running = false;
+  elapsedTime = 0;
+  document.getElementById("timer").textContent = "00:00:00:00";
+}
+
+function updateTimer() {
+  if (running) {
+    var time = Date.now() - startTime;
+    var millis = parseInt((time % 1000) / 10)
+      .toString()
+      .padStart(2, "0");
+    var seconds = parseInt((time / 1000) % 60)
+      .toString()
+      .padStart(2, "0");
+    var minutes = parseInt((time / (1000 * 60)) % 60)
+      .toString()
+      .padStart(2, "0");
+    var hours = parseInt((time / (1000 * 60 * 60)) % 24)
+      .toString()
+      .padStart(2, "0");
+    document.getElementById("timer").textContent =
+      hours + ":" + minutes + ":" + seconds + ":" + millis;
+  }
+}
+
+window.addEventListener(
+  "resize",
+  function () {
+    camera.aspect = (window.innerWidth * 0.8) / (window.innerHeight * 0.8);
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth * 0.8, window.innerHeight * 0.8);
+    renderer.domElement.style.left = "10%";
+    renderer.domElement.style.top = "10%";
+  },
+  false
+);
+
+// Boucle d'animation
 var prevTime = performance.now();
 function animate() {
   var time = performance.now();
-  var delta = (time - prevTime) / 1000; // time delta in seconds
+  var delta = (time - prevTime) / 1000;
   prevTime = time;
 
   requestAnimationFrame(animate);
@@ -229,7 +287,7 @@ function animate() {
   checkCollisions();
   checkStartLine();
   camera.position.copy(cube.position);
-  camera.position.add(cameraOffset);
+  camera.position.add(new THREE.Vector3(0, 2, 5));
   camera.lookAt(cube.position);
   renderer.render(scene, camera);
 }
