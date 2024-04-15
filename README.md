@@ -32,14 +32,17 @@ Le joueur a la possibilité de gagner des points bonus en ramassant des objets.
 - Avancer, reculer, aller a gauche/droite
 - Sol
 - Obstacles 
-- Chronometre
+- Chronometre qui démarre automatiquement/reset a chaque tour
 - Circuit
+- Systeme de collisions
+- Textures sur le sol
 
-# Crédits
-Modèle de voiture utilisé : 
-img 
+# Instructions d'installation 
+Vous pouvez telecharger le zip directement depuis github : ![screen zip](https://github.com/MathieuAudibert/3js/assets/105722701/c4b71244-a6ab-4973-8f6c-c6175d5b7e8c)
 
-credits
+Ou bien alors depuis votre invit de commande git mettre `git clone https://github.com/MathieuAudibert/3js`
+
+Une fois telechargé/cloné, pour lancer le jeu : `npm run dev` dans le terminal
 
 # Contacts
 <ul> 
